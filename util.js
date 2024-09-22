@@ -102,9 +102,3 @@ module.exports = {
   generateQuestion,
   parseQuestion,
 };
-
-/*
-open api key
-
-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
-*/
