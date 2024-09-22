@@ -1,0 +1,131 @@
+@font-face {
+  font-family: "Nanum Pen Script";
+  src: url("./fonts/NanumPenScript-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: "Nanum Pen Script", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  margin: 0;
+}
+
+.card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 60px;
+}
+
+h2 {
+  margin-bottom: 20px;
+  font-size: 36px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 10px;
+  text-align: left;
+  font-size: 28px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="date"],
+select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+button {
+  padding: 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 28px;
+  cursor: pointer;
+  margin-top: 10px;
+
+  font-family: "Nanum Pen Script", sans-serif;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+.hidden {
+  display: none;
+}
+
+.link {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.link a:hover {
+  text-decoration: underline;
+}
+
+.keywords-container {
+  text-align: left;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.keywords-container select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.keywords-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+p {
+  font-size: 20px;
+}

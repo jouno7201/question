@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈 화면</title>
+    <link rel="stylesheet" href="./css/home.css">
+    <!-- Font Awesome CSS 로드 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <!-- 메인 카드 -->
+    <div class="card">
+        <!-- 카드 내부의 우측 상단에 마이페이지와 로그아웃 버튼 배치 -->
+        <div class="card-header">
+            <a href="./mypage.html" id="mypageButton">마이페이지</a>
+            <a href="./" id="logoutButton">로그아웃</a>
+        </div>
+
+        <!-- 상단 제목 추가 -->
+        <h1 id="mainTitle">퀴즈 세상</h1>
+
+        <h2 id="welcomeMessage">환영합니다!</h2>
+
+        <!-- 키워드 선택 -->
+        <label for="keywords">키워드를 선택하세요:</label>
+        <select id="keywords">
+            <!-- 키워드 목록이 여기에 동적으로 추가됩니다. -->
+        </select>
+
+        <!-- 문제 풀이와 레벨 테스트 버튼 -->
+        <div id="buttonWrap">
+            <button id="quizButton">
+                <i class="fas fa-book-open"></i> <!-- 문제 풀이 아이콘 -->
+                <span>문제 풀기</span>
+            </button>
+            <button id="levelTestButton">
+                <i class="fas fa-chart-line"></i> <!-- 레벨 테스트 아이콘 -->
+                <span>레벨 테스트</span>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            const response = await fetch("/home", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include", // 세션 쿠키 포함
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const welcomeMessage = document.getElementById("welcomeMessage");
+                welcomeMessage.textContent = `환영합니다, ${data.user.nickname}!`;
+
+                const keywordsSelect = document.getElementById("keywords");
+                const allKeywords = data.keywords;
+
+                // 키워드 목록을 셀렉트 박스에 추가
+                allKeywords.forEach((keyword) => {
+                    const option = document.createElement("option");
+                    option.value = keyword.keyword;
+                    option.textContent = keyword.keyword;
+
+                    // 기본 키워드를 선택된 상태로 설정
+                    if (keyword.keyword === data.user.keyword) {
+                        option.selected = true;
+                    }
+
+                    keywordsSelect.appendChild(option);
+                });
+
+                // 페이지 로드 시 기본 키워드의 히스토리 확인
+                await checkHistory(data.user.keyword);
+
+                // 키워드 선택 시 히스토리 확인
+                keywordsSelect.addEventListener("change", async function () {
+                    const selectedKeyword = keywordsSelect.value;
+                    await checkHistory(selectedKeyword);
+                });
+            } else {
+                window.location.href = "/"; // 로그인 안된 경우 로그인 화면으로 리다이렉트
+            }
+        });
+
+        // 히스토리 확인 함수
+        async function checkHistory(keyword) {
+            try {
+                const response = await fetch("/getHistory", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ keyword: keyword }),
+                });
+
+                const data = await response.json();
+
+                // 히스토리가 없는 경우 문제 풀기 버튼 비활성화
+                if (data.score === 0 && data.difficultyLevel === "하") {
+                    document.getElementById("quizButton").dataset.historyExists = "false"; // 히스토리 없음을 저장
+                    document.getElementById("quizButton").style.backgroundColor = "#ccc"; // 버튼 스타일 변경
+                } else {
+                    document.getElementById("quizButton").dataset.historyExists = "true"; // 히스토리 있음을 저장
+                    document.getElementById("quizButton").style.backgroundColor = "#28a745"; // 버튼 스타일 복원
+                }
+            } catch (err) {
+                console.error("히스토리 확인 오류:", err);
+            }
+        }
+
+        // 문제 풀러 가기 버튼 클릭 시 히스토리 여부 확인
+        document.getElementById("quizButton").addEventListener("click", function () {
+            const keyword = document.getElementById("keywords").value;
+            const historyExists = document.getElementById("quizButton").dataset.historyExists === "true";
+
+            if (!historyExists) {
+                alert("해당 키워드에 대한 히스토리가 없습니다. 레벨 테스트를 먼저 진행해주세요.");
+            } else {
+                window.location.href = `/quiz.html?keyword=${keyword}`; // 문제 풀이 페이지로 이동
+            }
+        });
+
+        // 레벨 테스트 버튼 클릭 시 레벨 테스트 화면으로 이동
+        document.getElementById("levelTestButton").addEventListener("click", function () {
+            window.location.href = "/level-test.html"; // 레벨 테스트 페이지로 이동
+        });
+
+        // 마이페이지 버튼 클릭 시 마이페이지로 이동
+        document.getElementById("mypageButton").addEventListener("click", function () {
+            window.location.href = "/mypage.html"; // 마이페이지로 이동
+        });
+
+        // 로그아웃 버튼 클릭 시
+        document.getElementById("logoutButton").addEventListener("click", async function (event) {
+            event.preventDefault();
+            const response = await fetch("/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                // 로그아웃 성공 시 로그인 화면으로 이동
+                window.location.href = "/";
+            } else {
+                alert("로그아웃 실패");
+            }
+        });
+
+    </script>
+</body>
+
+</html>

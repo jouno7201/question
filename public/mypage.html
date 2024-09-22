@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+    <link rel="stylesheet" href="./css/mypage.css">
+</head>
+
+<body>
+    <div class="card">
+        <h1>퀴즈 세상</h1>
+        <h2>마이페이지</h2>
+
+        <!-- 사용자 정보 -->
+        <div>
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" disabled>
+
+            <label for="nickname">Nickname:</label>
+            <input type="text" id="nickname" name="nickname" required>
+
+            <div id="keywordWrap">
+                <label for="keywords">Keyword:</label>
+                <select id="keywords" name="keywords">
+                    <!-- 키워드 목록이 여기에 동적으로 추가됩니다. -->
+                </select>
+            </div>
+        </div>
+
+        <!-- 히스토리 정보 -->
+        <div id="historyContainer">
+            <p>점수: <span id="historyScore">0</span></p>
+            <p>난이도: <span id="historyDifficulty">하</span></p>
+        </div>
+
+        <button id="updateButton">저장하기</button>
+
+        <div class="link">
+            <p><a href="/home.html">홈으로 돌아가기</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 서버에서 사용자 정보와 키워드 목록을 가져옴
+        document.addEventListener("DOMContentLoaded", async function () {
+            const response = await fetch('/mypage', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include' // 세션 쿠키 포함
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const user = data.user;
+
+                // 사용자 정보를 폼에 표시
+                document.getElementById('id').value = user.id;
+                document.getElementById('nickname').value = user.nickname;
+
+                // 키워드 목록 가져오기
+                const keywordsSelect = document.getElementById('keywords');
+                const allKeywordsResponse = await fetch('/getKeywords', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ birthdate: user.birthdate })
+                });
+
+                const allKeywords = await allKeywordsResponse.json();
+
+                // 키워드 목록을 셀렉트 박스에 추가
+                allKeywords.forEach((keyword) => {
+                    const option = document.createElement('option');
+                    option.value = keyword.keyword;
+                    option.textContent = keyword.keyword;
+
+                    // 기본 키워드를 선택된 상태로 설정
+                    if (keyword.keyword === user.keyword) {
+                        option.selected = true;
+                    }
+
+                    keywordsSelect.appendChild(option);
+                });
+
+                // 선택된 키워드에 대한 히스토리 표시
+                await loadHistory(user.keyword);
+
+                // 키워드를 선택하면 히스토리 업데이트
+                keywordsSelect.addEventListener('change', async function () {
+                    const selectedKeyword = this.value;
+                    await loadHistory(selectedKeyword);
+                });
+            } else {
+                window.location.href = '/'; // 로그인 안된 경우 로그인 화면으로 리다이렉트
+            }
+        });
+
+        // 히스토리를 불러오는 함수
+        async function loadHistory(keyword) {
+            const response = await fetch('/getHistory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyword })
+            });
+
+            if (response.ok) {
+                const historyData = await response.json();
+                document.getElementById('historyScore').textContent = historyData.score;
+                document.getElementById('historyDifficulty').textContent = historyData.difficultyLevel;
+            } else {
+                alert('히스토리 정보를 가져오는 데 실패했습니다.');
+            }
+        }
+
+        // 프로필 업데이트 버튼 클릭 시
+        document.getElementById('updateButton').addEventListener('click', async function () {
+            const id = document.getElementById('id').value;
+            const nickname = document.getElementById('nickname').value;
+            const keyword = document.getElementById('keywords').value;
+
+            const response = await fetch('/updateProfile', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, nickname, keyword })
+            });
+
+            if (response.ok) {
+                alert('프로필이 성공적으로 업데이트되었습니다.');
+            } else {
+                alert('프로필 업데이트에 실패했습니다.');
+            }
+        });
+    </script>
+</body>
+
+</html>

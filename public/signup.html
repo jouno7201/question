@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <link rel="stylesheet" href="./css/signup.css">
+
+</head>
+
+<body>
+    <div class="card">
+        <h1>퀴즈 세상</h1>
+        <h2>회원가입</h2>
+
+        <!-- 첫 번째 단계: 기본 정보 입력 -->
+        <div id="step1">
+            <form id="step1Form">
+                <label for="id">ID:</label>
+                <input type="text" id="id" name="id" required>
+
+                <label for="nickname">Nickname:</label>
+                <input type="text" id="nickname" name="nickname" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+
+                <label for="birthdate">Birthdate:</label>
+                <input type="date" id="birthdate" name="birthdate" required>
+
+                <button type="button" id="nextButton">다음</button>
+            </form>
+        </div>
+
+        <!-- 두 번째 단계: 키워드 선택 -->
+        <div id="step2" class="hidden">
+            <h2>추천 키워드</h2>
+            <p>나이대에 맞는 키워드를 선택해주세요</p>
+
+            <div class="keywords-container">
+                <label for="keywords">Select Keyword:</label>
+                <select id="keywords" name="keyword" required>
+                    <!-- 키워드 옵션들이 동적으로 추가됨 -->
+                </select>
+            </div>
+
+            <button type="submit" id="submitButton">가입하기</button>
+        </div>
+
+        <div class="link">
+            <p>이미 계정이 있으신가요? <a href="/index.html">로그인</a></p>
+        </div>
+    </div>
+
+    <script>
+        let userInfo = {}; // 사용자의 기본 정보 저장
+
+        // "다음" 버튼 클릭 시 기본 정보 입력 단계 숨기고 키워드 선택 단계로 이동
+        document.getElementById('nextButton').addEventListener('click', async function () {
+            const id = document.getElementById('id').value;
+            const nickname = document.getElementById('nickname').value;
+            const password = document.getElementById('password').value;
+            const birthdate = document.getElementById('birthdate').value;
+
+            // 기본 정보가 입력되었는지 확인
+            if (!id || !nickname || !password || !birthdate) {
+                alert('모든 필드를 입력해주세요.');
+                return;
+            }
+
+            // 사용자 정보를 임시로 저장
+            userInfo = {
+                id: id,
+                nickname: nickname,
+                password: password,
+                birthdate: birthdate
+            };
+
+            // 나이대에 맞는 키워드 가져오기
+            const response = await fetch('/getKeywords', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ birthdate: birthdate })
+            });
+
+            const keywords = await response.json();
+
+            // 키워드를 셀렉트 박스에 추가
+            const keywordSelect = document.getElementById('keywords');
+            keywordSelect.innerHTML = ''; // 이전 키워드 초기화
+
+            keywords.forEach(keyword => {
+                const option = document.createElement('option');
+                option.value = keyword.keyword;
+                option.textContent = keyword.keyword;
+                keywordSelect.appendChild(option);
+            });
+
+            // 첫 번째 단계 숨기기, 두 번째 단계 표시
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+        });
+
+        // "가입하기" 버튼 클릭 시 최종 회원가입 요청 처리
+        document.getElementById('submitButton').addEventListener('click', async function (event) {
+            event.preventDefault();
+            const selectedKeyword = document.getElementById('keywords').value;
+
+            // 최종 회원가입 요청
+            const data = {
+                ...userInfo, // 기본 정보 포함
+                keyword: selectedKeyword // 선택한 키워드 추가
+            };
+
+            const response = await fetch('/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const message = await response.text();
+
+            window.location.href = "/";
+            alert(message);
+        });
+    </script>
+</body>
+
+</html>

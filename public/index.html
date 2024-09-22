@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+    <link rel="stylesheet" href="./css/login.css">
+</head>
+
+<body>
+    <div class="card">
+        <h1>퀴즈 세상</h1>
+        <h2>로그인</h2>
+        <form id="loginForm">
+            <label for="loginId">ID:</label>
+            <input type="text" id="loginId" name="id" required>
+
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <!-- 오류 메시지 표시 -->
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="link">
+            <p>계정이 없으신가요? <a href="/signup.html">회원가입</a></p>
+        </div>
+    </div>
+
+    <script>
+        // 로그인 요청 처리
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const data = {
+                id: document.getElementById('loginId').value,
+                password: document.getElementById('loginPassword').value
+            };
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            // 로그인 성공
+            if (response.ok) {
+                // 홈 화면으로 리다이렉트
+                window.location.href = '/home.html';
+            } else {
+                // 실패 시 오류 메시지 표시
+                const message = await response.text();
+                const errorMessageElement = document.getElementById('errorMessage');
+                errorMessageElement.textContent = message;
+                errorMessageElement.style.display = 'block'; // 오류 메시지 보이기
+            }
+        });
+    </script>
+</body>
+
+</html>

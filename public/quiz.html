@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문제 풀이</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #eef2f3;
+            margin: 0;
+        }
+
+        .card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .question-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-text {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .options li {
+            padding: 8px 0;
+        }
+
+        .options li input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>문제 풀이</h1>
+
+        <!-- 문제를 표시하는 컨테이너 -->
+        <div class="question-container" id="questionContainer">
+            <div class="question-text" id="questionText"></div>
+            <div class="difficulty-text" id="difficultyText"></div> <!-- 난이도 표시 -->
+            <ul class="options" id="optionsList"></ul>
+            <button id="submitAnswerButton">정답 제출</button>
+            <button id="nextQuestionButton" style="display: none;">다음 문제</button>
+        </div>
+
+        <button id="homeButton" style="background-color: #2ecc71;">홈으로 돌아가기</button> <!-- 홈으로 돌아가기 버튼 -->
+    </div>
+
+    <script>
+        let correctAnswer = null;
+
+        // 페이지 로드 시 서버에서 문제를 가져옴
+        document.addEventListener("DOMContentLoaded", async function () {
+            const params = new URLSearchParams(window.location.search);
+            const keyword = params.get('keyword');
+
+            const response = await fetch('/getRandomQuestion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyword })
+            });
+
+            if (response.ok) {
+                const questionData = await response.json();
+                const questionText = document.getElementById('questionText');
+                const difficultyText = document.getElementById('difficultyText');
+                const optionsList = document.getElementById('optionsList');
+
+                // 문제와 선택지를 화면에 표시
+                questionText.textContent = questionData.question;
+                difficultyText.textContent = `난이도: ${questionData.difficulty}`; // 난이도 표시
+                correctAnswer = questionData.answer; // 정답 저장
+                optionsList.innerHTML = ''; // 기존 옵션 초기화
+                questionData.options.forEach(option => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<input type="radio" name="option" value="${option}">${option}`;
+                    optionsList.appendChild(li);
+                });
+            } else {
+                alert('문제를 가져오는 데 실패했습니다.');
+            }
+        });
+
+        // 정답 제출 버튼 클릭 시
+        document.getElementById('submitAnswerButton').addEventListener('click', async function () {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            if (!selectedOption) {
+                alert("답을 선택해 주세요.");
+                return;
+            }
+
+            const userAnswer = selectedOption.value;
+            const isCorrect = (userAnswer === correctAnswer); // 정답 확인
+
+            // 서버로 정답 제출
+            const params = new URLSearchParams(window.location.search);
+            const keyword = params.get('keyword');
+            const response = await fetch('/submitAnswer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyword, isCorrect })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(isCorrect ? "정답입니다!" : "오답입니다.");
+                alert(`현재 점수: ${result.score}, 난이도: ${result.difficultyLevel}`);
+
+                // 다음 문제 버튼 표시
+                document.getElementById('nextQuestionButton').style.display = 'block';
+                document.getElementById('submitAnswerButton').style.display = 'none';
+            } else {
+                alert('정답 제출에 실패했습니다.');
+            }
+        });
+
+        // 다음 문제 버튼 클릭 시 새로운 문제를 가져옴
+        document.getElementById('nextQuestionButton').addEventListener('click', function () {
+            window.location.reload(); // 페이지 새로고침을 통해 새로운 문제 로드
+        });
+
+        // 홈으로 돌아가기 버튼 클릭 시 홈 화면으로 이동
+        document.getElementById('homeButton').addEventListener('click', function () {
+            window.location.href = '/home.html'; // 홈 화면으로 이동
+        });
+    </script>
+</body>
+
+</html>
