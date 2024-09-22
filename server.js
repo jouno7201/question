@@ -580,4 +580,28 @@ app.post("/admin/quizzes/generate", async (req, res) => {
   }
 });
 
+app.get("/admin/quizzes/generate/test", async (req, res) => {
+  try {
+    // chatGPT를 사용하여 문제 생성
+    const generatedQuestion = await generateQuestion("축구", "하");
+
+    // 생성된 문제를 데이터베이스에 저장
+    await db.collection("question").insertOne({
+      subject: "축구",
+      difficulty: "하",
+      question: generatedQuestion.question,
+      options: generatedQuestion.options,
+      answer: generatedQuestion.answer,
+    });
+
+    res.status(201).json({
+      message: "문제가 성공적으로 생성되고 저장되었습니다.",
+      question: generatedQuestion,
+    });
+  } catch (err) {
+    console.error("문제 생성 오류:", err);
+    res.status(500).send("문제 생성 및 저장 중 오류가 발생했습니다.");
+  }
+});
+
 connectToMongoDB();

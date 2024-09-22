@@ -1,5 +1,5 @@
 const { default: axios } = require("axios");
-const { OPEN_API_KEY } = require("dotenv").config();
+require("dotenv").config();
 
 const calculateAge = (birthdate) => {
   const birthYear = new Date(birthdate).getFullYear();
@@ -45,7 +45,7 @@ const generateQuestion = async (keyword, difficulty) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${OPEN_API_KEY}`,
+          Authorization: `Bearer ${process.env.OPEN_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
