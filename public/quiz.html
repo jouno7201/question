@@ -25,6 +25,8 @@
             width: 100%;
             text-align: center;
             animation: fadeIn 0.5s ease-in-out;
+            position: relative;
+            /* 홈 버튼 위치 설정을 위해 position 추가 */
         }
 
         @keyframes fadeIn {
@@ -37,6 +39,33 @@
             }
         }
 
+        /* 홈 버튼을 우측 상단에 배치하는 스타일 */
+        .card-header {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 홈 버튼 스타일 */
+        #homeButton {
+            background-color: #ffffff;
+            color: #3498db;
+            border: 1px solid #3498db;
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #homeButton:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
         h1 {
             margin-bottom: 25px;
             font-size: 24px;
@@ -45,13 +74,12 @@
 
         button {
             padding: 12px 20px;
-            background-color: #3498db;
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 25px;
             font-size: 16px;
             cursor: pointer;
-            margin-bottom: 20px;
             width: 100%;
             transition: background-color 0.3s;
         }
@@ -96,6 +124,11 @@
 
 <body>
     <div class="card">
+        <!-- 홈 버튼을 우측 상단에 배치 -->
+        <div class="card-header">
+            <a href="/home.html" id="homeButton">홈으로 이동</a>
+        </div>
+
         <h1>문제 풀이</h1>
 
         <!-- 문제를 표시하는 컨테이너 -->
@@ -106,8 +139,6 @@
             <button id="submitAnswerButton">정답 제출</button>
             <button id="nextQuestionButton" style="display: none;">다음 문제</button>
         </div>
-
-        <button id="homeButton" style="background-color: #2ecc71;">홈으로 돌아가기</button> <!-- 홈으로 돌아가기 버튼 -->
     </div>
 
     <script>
@@ -181,11 +212,6 @@
         // 다음 문제 버튼 클릭 시 새로운 문제를 가져옴
         document.getElementById('nextQuestionButton').addEventListener('click', function () {
             window.location.reload(); // 페이지 새로고침을 통해 새로운 문제 로드
-        });
-
-        // 홈으로 돌아가기 버튼 클릭 시 홈 화면으로 이동
-        document.getElementById('homeButton').addEventListener('click', function () {
-            window.location.href = '/home.html'; // 홈 화면으로 이동
         });
     </script>
 </body>

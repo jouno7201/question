@@ -604,4 +604,94 @@ app.get("/admin/quizzes/generate/test", async (req, res) => {
   }
 });
 
+// 선택된 키워드에 대해 15개의 레벨 테스트 문제를 가져오는 API
+app.post("/level-test/questions", async (req, res) => {
+  const { keyword } = req.body;
+
+  try {
+    // 각 난이도에 대해 5문제씩 가져오기
+    const easyQuestions = await db
+      .collection("question")
+      .aggregate([
+        { $match: { subject: keyword, difficulty: "하" } },
+        { $sample: { size: 5 } },
+      ])
+      .toArray();
+
+    const mediumQuestions = await db
+      .collection("question")
+      .aggregate([
+        { $match: { subject: keyword, difficulty: "중" } },
+        { $sample: { size: 5 } },
+      ])
+      .toArray();
+
+    const hardQuestions = await db
+      .collection("question")
+      .aggregate([
+        { $match: { subject: keyword, difficulty: "상" } },
+        { $sample: { size: 5 } },
+      ])
+      .toArray();
+
+    // 15개 문제를 결합하여 응답
+    const levelTestQuestions = [
+      ...easyQuestions,
+      ...mediumQuestions,
+      ...hardQuestions,
+    ];
+
+    res.status(200).json(levelTestQuestions);
+  } catch (err) {
+    console.error("레벨 테스트 문제 조회 오류:", err);
+    res.status(500).send("레벨 테스트 문제 조회 중 오류가 발생했습니다.");
+  }
+});
+
+// 레벨 테스트 결과 제출 및 히스토리 저장 API
+app.post("/level-test/submit", async (req, res) => {
+  const { keyword, answers } = req.body;
+  const userId = req.session.user.id;
+
+  // 하, 중, 상 문제의 점수 설정
+  const scoreMap = { 하: 4, 중: 6, 상: 10 };
+  let totalScore = 0;
+
+  try {
+    // 각 답안의 정답 여부를 확인하고 점수 계산
+    for (const answer of answers) {
+      const question = await db
+        .collection("question")
+        .findOne({ _id: new ObjectId(answer.questionId) }); // questionId로 문제를 찾음
+      if (question && question.answer === answer.selectedAnswer) {
+        totalScore += scoreMap[question.difficulty]; // 정답이면 난이도에 맞는 점수 추가
+      }
+    }
+
+    // 레벨 결정
+    let difficultyLevel;
+    if (totalScore < 60) {
+      difficultyLevel = "하";
+    } else if (totalScore < 80) {
+      difficultyLevel = "중";
+    } else {
+      difficultyLevel = "상";
+    }
+
+    // 히스토리 업데이트 또는 삽입
+    await db
+      .collection("history")
+      .updateOne(
+        { userId, subject: keyword },
+        { $set: { score: totalScore, difficultyLevel } },
+        { upsert: true }
+      );
+
+    res.status(200).json({ score: totalScore, difficultyLevel });
+  } catch (err) {
+    console.error("레벨 테스트 제출 오류:", err);
+    res.status(500).send("레벨 테스트 제출 중 오류가 발생했습니다.");
+  }
+});
+
 connectToMongoDB();

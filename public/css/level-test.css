@@ -1,0 +1,107 @@
+/* 기본적인 전체 배경 및 폰트 스타일 설정 */
+body {
+  font-family: "Nanum Pen Script", sans-serif;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+#levelTestContainer {
+  background-color: white;
+  padding: 30px; /* padding 증가 */
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  width: 700px; /* 폭 증가 */
+  max-width: 90%;
+  position: relative; /* 홈 버튼 위치를 위한 position 설정 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+h1 {
+  font-size: 36px;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+/* 홈 버튼 스타일 */
+.card-header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+#homeButton {
+  background-color: #ffffff;
+  color: #3498db;
+  border: 1px solid #3498db;
+  border-radius: 15px;
+  padding: 5px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#homeButton:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+#questionContainer {
+  margin-top: 20px;
+  text-align: left; /* 질문 텍스트 왼쪽 정렬 */
+}
+
+.question {
+  margin-bottom: 25px; /* 질문 간격 증가 */
+  padding: 15px; /* 질문 컨테이너 패딩 */
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.question p {
+  font-size: 20px; /* 질문 텍스트 크기 증가 */
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  font-size: 18px; /* 선택지 텍스트 크기 증가 */
+  margin-bottom: 10px;
+}
+
+input[type="radio"] {
+  margin-right: 10px;
+  transform: scale(1.2); /* 라디오 버튼 크기 증가 */
+}
+
+button {
+  width: 100%;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 15px; /* 버튼 패딩 증가 */
+  font-size: 20px; /* 버튼 텍스트 크기 증가 */
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 20px;
+}
+
+button:hover {
+  background-color: #218838;
+}

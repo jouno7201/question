@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>관리자 페이지</title>
     <style>
+        /* 기본 스타일 */
         body {
             font-family: Arial, sans-serif;
             background-color: #ffffff;
@@ -182,6 +183,15 @@
         .user-table td:nth-child(6) {
             width: 10%;
         }
+
+        /* 생성된 문제 결과 표시 스타일 */
+        .generated-question {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 
@@ -236,6 +246,7 @@
         </select>
         <button onclick="openAddQuestionModal()">문제 추가</button>
         <button onclick="openAddKeywordModal()">키워드 추가</button>
+        <button onclick="openGenerateQuestionModal()">AI로 문제 생성</button> <!-- AI 문제 생성 버튼 -->
     </div>
 
     <!-- 퀴즈 정보 섹션 -->
@@ -295,6 +306,32 @@
             <div>
                 <button class="save-btn" onclick="addKeyword()">추가</button>
                 <button class="cancel-btn" onclick="closeAddKeywordModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI 문제 생성 모달 -->
+    <div id="generateQuestionModal" class="modal">
+        <div class="modal-content">
+            <h3>AI로 문제 생성</h3>
+            <label for="generateSubject">주제:</label>
+            <select id="generateSubject"></select>
+            <label for="generateDifficulty">난이도:</label>
+            <select id="generateDifficulty">
+                <option value="하">하</option>
+                <option value="중">중</option>
+                <option value="상">상</option>
+            </select>
+            <div>
+                <button class="save-btn" onclick="generateQuestion()">생성</button>
+                <button class="cancel-btn" onclick="closeGenerateQuestionModal()">취소</button>
+            </div>
+            <!-- 문제 생성 결과 표시 영역 -->
+            <div id="generatedQuestionContainer" class="generated-question" style="display: none;">
+                <h4>생성된 문제:</h4>
+                <p><strong>질문:</strong> <span id="generatedQuestion"></span></p>
+                <p><strong>옵션:</strong> <span id="generatedOptions"></span></p>
+                <p><strong>정답:</strong> <span id="generatedAnswer"></span></p>
             </div>
         </div>
     </div>
@@ -577,8 +614,6 @@
         async function deleteQuestion(index) {
             const questionId = allQuizzes[index]._id;
 
-            console.log('quiz data :', allQuizzes[index]);
-
             const response = await fetch(`/admin/quizzes?id=${questionId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
@@ -635,6 +670,70 @@
             const answerSelect = document.getElementById('addAnswer');
             answerSelect.innerHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
         });
+
+        // AI 문제 생성 모달 열기
+        function openGenerateQuestionModal() {
+            document.getElementById('generateQuestionModal').style.display = 'flex';
+
+            // 주제 목록 로드
+            const subjectDropdown = document.getElementById('generateSubject');
+            subjectDropdown.innerHTML = '';
+
+            // API를 통해 주제 목록을 가져옴
+            fetch('/admin/keywords', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(subjects => {
+                    subjects.map((e) => e.keyword).forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        subjectDropdown.appendChild(option);
+                    });
+                })
+                .catch(err => {
+                    console.error('주제 목록을 가져오는 중 오류 발생:', err);
+                    alert('주제 목록을 가져오는 데 실패했습니다.');
+                });
+        }
+
+        // AI 문제 생성 모달 닫기
+        function closeGenerateQuestionModal() {
+            document.getElementById('generateQuestionModal').style.display = 'none';
+        }
+
+        // AI 문제 생성
+        async function generateQuestion() {
+            const subject = document.getElementById('generateSubject').value;
+            const difficulty = document.getElementById('generateDifficulty').value;
+
+            const response = await fetch('/admin/quizzes/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ keyword: subject, difficulty })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                // 생성된 문제를 모달 내에 표시
+                document.getElementById('generatedQuestion').textContent = result.question.question;
+                document.getElementById('generatedOptions').textContent = result.question.options.join(', ');
+                document.getElementById('generatedAnswer').textContent = result.question.answer;
+                document.getElementById('generatedQuestionContainer').style.display = 'block';
+
+                // 동적으로 퀴즈 목록에 추가
+                allQuizzes.push(result.question);
+                displayQuizzes(allQuizzes);
+
+            } else {
+                alert('문제 생성에 실패했습니다.');
+            }
+        }
     </script>
 
 </body>

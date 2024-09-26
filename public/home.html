@@ -124,9 +124,14 @@
             }
         });
 
-        // 레벨 테스트 버튼 클릭 시 레벨 테스트 화면으로 이동
+        // 레벨 테스트 버튼 클릭 시 선택된 키워드를 URL에 포함하여 레벨 테스트 화면으로 이동
         document.getElementById("levelTestButton").addEventListener("click", function () {
-            window.location.href = "/level-test.html"; // 레벨 테스트 페이지로 이동
+            const keyword = document.getElementById("keywords").value;
+            if (!keyword) {
+                alert("레벨 테스트를 진행할 키워드를 선택해주세요.");
+                return;
+            }
+            window.location.href = `/level-test.html?keyword=${keyword}`; // 선택된 키워드를 쿼리에 포함하여 이동
         });
 
         // 마이페이지 버튼 클릭 시 마이페이지로 이동

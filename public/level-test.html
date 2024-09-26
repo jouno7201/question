@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레벨 테스트</title>
+    <link rel="stylesheet" href="./css/level-test.css">
+</head>
+
+<body>
+    <div id="levelTestContainer">
+        <!-- 홈 버튼을 우측 상단에 배치 -->
+        <div class="card-header">
+            <a href="/home.html" id="homeButton">홈으로 이동</a>
+        </div>
+        <h1>레벨 테스트</h1>
+        <div id="questionContainer">
+            <!-- 문제가 여기에 표시됩니다. -->
+        </div>
+        <button id="submitButton">제출하기</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            // URL 쿼리에서 키워드 추출
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyword = urlParams.get("keyword");
+
+            // 키워드가 없을 경우 경고 메시지를 출력하고 리턴
+            if (!keyword) {
+                alert("선택된 키워드가 없습니다. 홈 화면에서 키워드를 선택해주세요.");
+                window.location.href = "/"; // 홈 화면으로 리다이렉트
+                return;
+            }
+
+            try {
+                const response = await fetch("/level-test/questions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ keyword }),
+                    credentials: "include"
+                });
+
+                if (response.ok) {
+                    const questions = await response.json();
+                    displayQuestions(questions);
+                } else {
+                    alert("레벨 테스트 문제를 불러오는데 실패했습니다.");
+                }
+            } catch (err) {
+                console.error("레벨 테스트 문제 로드 오류:", err);
+            }
+        });
+
+        // 문제를 화면에 표시하는 함수
+        function displayQuestions(questions) {
+            const questionContainer = document.getElementById("questionContainer");
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement("div");
+                questionDiv.classList.add("question");
+                questionDiv.dataset.id = question._id; // 각 질문의 MongoDB _id를 저장
+                questionDiv.innerHTML = `
+                    <p>${index + 1}. ${question.question}</p>
+                    ${question.options.map((option, idx) => `
+                        <label>
+                            <input type="radio" name="question${index}" value="${option}">
+                            ${option}
+                        </label>
+                    `).join("")}
+                `;
+                questionContainer.appendChild(questionDiv);
+            });
+        }
+
+        // 제출 버튼 클릭 시, 선택된 답안을 서버로 전송
+        document.getElementById("submitButton").addEventListener("click", async function () {
+            const answers = [];
+            const questions = document.querySelectorAll(".question");
+
+            questions.forEach((question, index) => {
+                const selectedOption = question.querySelector(`input[name="question${index}"]:checked`);
+                if (selectedOption) {
+                    answers.push({
+                        questionId: question.dataset.id, // 각 질문의 _id를 서버로 전송
+                        selectedAnswer: selectedOption.value
+                    });
+                }
+            });
+
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const keyword = urlParams.get("keyword");
+
+                const response = await fetch("/level-test/submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ keyword, answers }), // 키워드와 선택된 답안들 전송
+                    credentials: "include"
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`테스트 결과: ${result.difficultyLevel} (점수: ${result.score})`);
+                    // 결과 후 홈 화면으로 리다이렉트
+                    window.location.href = "/home.html";
+                } else {
+                    alert("레벨 테스트 제출에 실패했습니다.");
+                }
+            } catch (err) {
+                console.error("레벨 테스트 제출 오류:", err);
+            }
+        });
+    </script>
+</body>
+
+</html>
