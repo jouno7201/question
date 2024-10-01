@@ -136,6 +136,12 @@
             <div class="question-text" id="questionText"></div>
             <div class="difficulty-text" id="difficultyText"></div> <!-- 난이도 표시 -->
             <ul class="options" id="optionsList"></ul>
+            <div id="correct_text" style="display: none; padding-bottom:20px; color:#28a745">
+                정답입니다.
+            </div>
+            <div id="wrong_text" style="display: none; padding-bottom:20px; color:red">
+                오답입니다.
+            </div>
             <button id="submitAnswerButton">정답 제출</button>
             <button id="nextQuestionButton" style="display: none;">다음 문제</button>
         </div>
@@ -198,8 +204,14 @@
 
             if (response.ok) {
                 const result = await response.json();
-                alert(isCorrect ? "정답입니다!" : "오답입니다.");
-                alert(`현재 점수: ${result.score}, 난이도: ${result.difficultyLevel}`);
+                //alert(isCorrect ? "정답입니다!" : "오답입니다.");
+                //alert(`현재 점수: ${result.score}, 난이도: ${result.difficultyLevel}`);
+
+                if (isCorrect) {
+                    document.getElementById('correct_text').style.display = 'block';
+                } else {
+                    document.getElementById('wrong_text').style.display = 'block';
+                }
 
                 // 다음 문제 버튼 표시
                 document.getElementById('nextQuestionButton').style.display = 'block';
